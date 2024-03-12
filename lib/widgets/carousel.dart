@@ -1,20 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:my_app/additionals/location.dart';
+import 'package:my_app/additionals/locations_list.dart';
+import 'package:my_app/main.dart';
 import 'package:my_app/utils/constants.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:provider/provider.dart';
 
 class Carousel extends StatefulWidget {
-  final void Function(dynamic state) handleCangeUserAcceptInfo;
-  final void Function(dynamic state) handleChangeCurrentLocation;
-  final String? experianceType;
-  final List<Location> locations;
-
   const Carousel({
     Key? key,
-    required this.handleCangeUserAcceptInfo,
-    required this.handleChangeCurrentLocation,
-    required this.experianceType,
-    required this.locations,
   }) : super(key: key);
 
   @override
@@ -22,7 +17,15 @@ class Carousel extends StatefulWidget {
 }
 
 class CarouselState extends State<Carousel> {
+  final List<Location> locations = LocationList.locations;
   int _activeIndex = 0;
+  late AppState appState;
+
+  @override
+  void initState() {
+    super.initState();
+    appState = Provider.of<AppState>(context, listen: false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,11 +47,10 @@ class CarouselState extends State<Carousel> {
                   icon: const Icon(Icons.close),
                   iconSize: 30.0,
                   onPressed: () {
-                    Navigator.pop(context);
-                    widget.handleCangeUserAcceptInfo(true);
-                    if (widget.experianceType == "Virtual") {
-                      widget
-                          .handleChangeCurrentLocation(widget.locations.first);
+                    GoRouter.of(context).pop();
+                    appState.changeUserAcceptInfo(true);
+                    if (appState.experianceType == "Virtual") {
+                      appState.changeCurrentLocation(locations.first);
                     }
                   },
                 ),

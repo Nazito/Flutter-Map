@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:my_app/additionals/locations_list.dart';
+import 'package:my_app/main.dart';
 import 'package:my_app/widgets/carousel.dart';
 import 'package:my_app/widgets/panel_widget.dart';
+import 'package:provider/provider.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:my_app/widgets/map_google.dart';
 import 'package:my_app/widgets/short_info_block.dart';
@@ -11,21 +14,8 @@ import '../additionals/location.dart';
 import '../utils/constants.dart';
 
 class MapScreen extends StatefulWidget {
-  final void Function(dynamic state) handleChangeCurrentLocation;
-  final void Function(dynamic state) handleChangeUserAcceptInfo;
-  final List<Location> locations;
-  final Location? currentLocation;
-  final String? experianceType;
-  final bool isUserAcceptInfo;
-
   const MapScreen({
     Key? key,
-    required this.handleChangeCurrentLocation,
-    required this.handleChangeUserAcceptInfo,
-    required this.locations,
-    required this.currentLocation,
-    required this.experianceType,
-    required this.isUserAcceptInfo,
   }) : super(key: key);
 
   @override
@@ -33,9 +23,11 @@ class MapScreen extends StatefulWidget {
 }
 
 class MapScreenState extends State<MapScreen> {
+  late AppState appState;
   PanelController panelController = PanelController();
   double previousPosition = 0.0;
   bool isClosed = false;
+  final List<Location> locations = LocationList.locations;
 
   @override
   void initState() {
@@ -44,6 +36,7 @@ class MapScreenState extends State<MapScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _showCarouselModal(context);
     });
+    appState = Provider.of<AppState>(context, listen: false);
   }
 
   @override
@@ -83,13 +76,13 @@ class MapScreenState extends State<MapScreen> {
                       iconSize: 30.0,
                       onPressed: () {
                         _closePanel();
-                        if (widget.currentLocation != null &&
-                            widget.experianceType == "Virtual") {
+                        if (appState.currentLocation != null &&
+                            appState.experianceType == "Virtual") {
                           final currentIndex =
-                              widget.locations.indexOf(widget.currentLocation!);
-                          if (currentIndex < widget.locations.length - 1) {
-                            widget.handleChangeCurrentLocation(
-                                widget.locations[currentIndex + 1]);
+                              locations.indexOf(appState.currentLocation!);
+                          if (currentIndex < locations.length - 1) {
+                            appState.changeCurrentLocation(
+                                locations[currentIndex + 1]);
                           }
                         }
                       },
@@ -100,26 +93,17 @@ class MapScreenState extends State<MapScreen> {
                 Visibility(
                     visible: previousPosition > 0.5,
                     child: FullInfoBlock(
-                        locations: widget.locations,
-                        currentLocation: widget.currentLocation,
-                        handleChangeCurrentLocation:
-                            widget.handleChangeCurrentLocation,
-                        closePanel: _closePanel,
-                        experianceType: widget.experianceType)),
+                      closePanel: _closePanel,
+                    )),
                 // Min height block
                 Visibility(
                     visible: previousPosition <= 0.5,
-                    child: ShortInfoBlock(
-                        currentLocation: widget.currentLocation)),
+                    child: const ShortInfoBlock()),
               ])),
           body: Center(
             child: MapGoogle(
-                isUserAcceptInfo: widget.isUserAcceptInfo,
-                handleChangeCurrentLocation: widget.handleChangeCurrentLocation,
-                experianceType: widget.experianceType,
-                currentLocation: widget.currentLocation,
-                togglePanel: _togglePanel,
-                locations: widget.locations),
+              togglePanel: _togglePanel,
+            ),
           ),
         ),
       )),
@@ -138,7 +122,8 @@ class MapScreenState extends State<MapScreen> {
 
   void _closePanel() => {
         isClosed = true,
-        if (panelController.isAttached) {panelController.close()}
+        if (panelController.isAttached)
+          {panelController.animatePanelToPosition(0)}
       };
 
   void _togglePanel(double position) {
@@ -150,7 +135,7 @@ class MapScreenState extends State<MapScreen> {
   void _snapPointPanel(double pos) {
     if (panelController.isAttached &&
         !isClosed &&
-        widget.experianceType == "Explore") {
+        appState.experianceType == "Explore") {
       if (pos > previousPosition) {
         // Панель движется вверх
         if (pos < 0.5) {
@@ -181,7 +166,7 @@ class MapScreenState extends State<MapScreen> {
         return Container(
             padding: const EdgeInsets.all(40),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.2), // Полупрозрачный цвет фона
+              color: Colors.black.withOpacity(0.2),
             ),
             child: const Menu());
       },
@@ -196,13 +181,9 @@ class MapScreenState extends State<MapScreen> {
         return Container(
           padding: const EdgeInsets.all(40),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.2), // Полупрозрачный цвет фона
+            color: Colors.black.withOpacity(0.2),
           ),
-          child: Carousel(
-              handleCangeUserAcceptInfo: widget.handleChangeUserAcceptInfo,
-              handleChangeCurrentLocation: widget.handleChangeCurrentLocation,
-              experianceType: widget.experianceType,
-              locations: widget.locations),
+          child: const Carousel(),
         );
       },
     );

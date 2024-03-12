@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:my_app/main.dart';
 import 'package:my_app/utils/constants.dart';
+import 'package:provider/provider.dart';
 
 class ExperienceScreen extends StatefulWidget {
-  final void Function(dynamic state) handleChangeExperianceType;
-
   const ExperienceScreen({
     Key? key,
-    required this.handleChangeExperianceType,
   }) : super(key: key);
 
   @override
@@ -14,6 +14,14 @@ class ExperienceScreen extends StatefulWidget {
 }
 
 class ExperienceScreenState extends State<ExperienceScreen> {
+  late AppState appState;
+
+  @override
+  void initState() {
+    super.initState();
+    appState = Provider.of<AppState>(context, listen: false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,11 +56,8 @@ class ExperienceScreenState extends State<ExperienceScreen> {
                             ),
                           ),
                           onPressed: () {
-                            widget.handleChangeExperianceType("Virtual");
-                            Navigator.pushNamed(
-                              context,
-                              '/map',
-                            );
+                            appState.changeExperianceType("Virtual");
+                            GoRouter.of(context).go('/map');
                           },
                           child: Text(
                             'Virtual Tour',
@@ -77,11 +82,8 @@ class ExperienceScreenState extends State<ExperienceScreen> {
                             ),
                           ),
                           onPressed: () {
-                            widget.handleChangeExperianceType("Explore");
-                            Navigator.pushNamed(
-                              context,
-                              '/map',
-                            );
+                            appState.changeExperianceType("Explore");
+                            GoRouter.of(context).go('/map');
                           },
                           child: Text(
                             'Explore',

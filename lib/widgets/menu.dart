@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:my_app/utils/constants.dart';
 
 class Menu extends StatelessWidget {
@@ -91,10 +92,7 @@ class Menu extends StatelessWidget {
               ),
             ),
             onPressed: () {
-              Navigator.pushNamed(
-                context,
-                '/experience',
-              );
+              GoRouter.of(context).go('/experience');
             },
             child: Text(
               'Switch Experiences',

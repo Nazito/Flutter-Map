@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:my_app/screens/first_screen_page_view.dart';
+import 'package:provider/provider.dart';
 import 'package:my_app/additionals/location.dart';
-import 'package:my_app/additionals/locations_list.dart';
 import 'package:my_app/screens/experience_screen.dart';
-import 'package:my_app/screens/home_screen.dart';
-import 'package:my_app/screens/intro_screen.dart';
 import 'package:my_app/screens/map_screen.dart';
 import 'package:my_app/utils/theme.dart';
 
@@ -11,55 +11,64 @@ void main() {
   runApp(const App());
 }
 
-class App extends StatefulWidget {
-  const App({super.key});
+// / The route configuration.
+final GoRouter _router = GoRouter(
+  routes: <RouteBase>[
+    GoRoute(
+      path: '/',
+      builder: (BuildContext context, GoRouterState state) {
+        return const FirstScreenPageView();
+      },
+      routes: <RouteBase>[
+        GoRoute(
+          path: 'experience',
+          builder: (BuildContext context, GoRouterState state) {
+            return const ExperienceScreen();
+          },
+        ),
+        GoRoute(
+          path: 'map',
+          builder: (BuildContext context, GoRouterState state) {
+            return const MapScreen();
+          },
+        ),
+      ],
+    ),
+  ],
+);
+
+class App extends StatelessWidget {
+  const App({Key? key}) : super(key: key);
 
   @override
-  ApptState createState() => ApptState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (context) => AppState(),
+      child: MaterialApp.router(
+        routerConfig: _router,
+        theme: basicTheme(),
+      ),
+    );
+  }
 }
 
-class ApptState extends State<App> {
+class AppState extends ChangeNotifier {
   Location? currentLocation;
   String? experianceType;
   bool isUserAcceptInfo = false;
 
-  _handleChangeCurrentLocation(loc) {
-    setState(() {
-      currentLocation = loc;
-    });
+  void changeCurrentLocation(Location loc) {
+    currentLocation = loc;
+    notifyListeners();
   }
 
-  _handleChangeExperianceType(type) {
-    setState(() {
-      experianceType = type;
-    });
+  void changeExperianceType(type) {
+    experianceType = type;
+    notifyListeners();
   }
 
-  _handleChangeUserAcceptInfo(status) {
-    setState(() {
-      isUserAcceptInfo = status;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: basicTheme(),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const HomeScreen(),
-        '/intro': (context) => const IntroScreen(),
-        '/experience': (context) => ExperienceScreen(
-            handleChangeExperianceType: _handleChangeExperianceType),
-        '/map': (context) => MapScreen(
-              locations: LocationList.locations,
-              isUserAcceptInfo: isUserAcceptInfo,
-              currentLocation: currentLocation,
-              experianceType: experianceType,
-              handleChangeCurrentLocation: _handleChangeCurrentLocation,
-              handleChangeUserAcceptInfo: _handleChangeUserAcceptInfo,
-            ),
-      },
-    );
+  changeUserAcceptInfo(status) {
+    isUserAcceptInfo = status;
+    notifyListeners();
   }
 }

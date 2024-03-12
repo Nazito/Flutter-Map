@@ -1,5 +1,6 @@
 import 'package:flick_video_player/flick_video_player.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:video_player/video_player.dart';
 import 'package:my_app/utils/constants.dart';
 
@@ -23,7 +24,7 @@ class IntroScreenState extends State<IntroScreen> {
     );
     flickManager.flickVideoManager?.addListener(() {
       if (flickManager.flickVideoManager?.isVideoEnded ?? false) {
-        Navigator.pushNamed(context, '/experience');
+        GoRouter.of(context).go('/experience');
       }
     });
   }
@@ -72,10 +73,7 @@ class IntroScreenState extends State<IntroScreen> {
                 onPressed: () {
                   flickManager.flickVideoManager?.videoPlayerController
                       ?.pause();
-                  Navigator.pushNamed(
-                    context,
-                    '/experience',
-                  );
+                  GoRouter.of(context).go('/experience');
                 },
                 child: const Text('Skip'),
               ),

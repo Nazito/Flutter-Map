@@ -1,26 +1,19 @@
 import 'dart:async';
 import 'package:flick_video_player/flick_video_player.dart';
+import 'package:my_app/additionals/locations_list.dart';
+import 'package:my_app/main.dart';
 import 'package:my_app/widgets/video_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:my_app/additionals/location.dart';
+import 'package:provider/provider.dart';
 
 class MapGoogle extends StatefulWidget {
-  final void Function(dynamic state) handleChangeCurrentLocation;
   final void Function(double position) togglePanel;
-  final List<Location> locations;
-  final bool isUserAcceptInfo;
-  final String? experianceType;
-  final Location? currentLocation;
 
   const MapGoogle({
     Key? key,
-    required this.handleChangeCurrentLocation,
     required this.togglePanel,
-    required this.locations,
-    required this.isUserAcceptInfo,
-    required this.experianceType,
-    required this.currentLocation,
   }) : super(key: key);
 
   @override
@@ -28,36 +21,39 @@ class MapGoogle extends StatefulWidget {
 }
 
 class MapGoogleState extends State<MapGoogle> with TickerProviderStateMixin {
+  late AppState appState;
   String mapTheme = '';
   late FlickManager flickManager;
-  final List<Marker> _markers = <Marker>[];
   final Completer<GoogleMapController> _controller =
       Completer<GoogleMapController>();
+  final List<Location> locations = LocationList.locations;
+  Location? _previousLocation;
 
   @override
   void initState() {
     super.initState();
-    widget.isUserAcceptInfo ? loadData() : null;
+
     DefaultAssetBundle.of(context)
         .loadString('assets/maptheme/dark_theme.json')
         .then((value) => mapTheme = value);
+    appState = Provider.of<AppState>(context, listen: false);
   }
 
   @override
-  void didUpdateWidget(MapGoogle oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isUserAcceptInfo && _markers.isEmpty) {
-      loadData();
-    }
-    if (widget.currentLocation != oldWidget.currentLocation) {
-      if (widget.currentLocation != null) {
-        _moveToNextMarker(widget.currentLocation!);
-      }
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final currentLocation = appState.currentLocation;
+
+    if (_previousLocation != currentLocation &&
+        currentLocation != null &&
+        appState.experianceType == "Virtual") {
+      _previousLocation = currentLocation;
+      _moveToNextMarker(currentLocation);
     }
   }
 
   Future<void> moveToMarker(Marker marker) async {
-    if (widget.experianceType == "Virtual") {
+    if (appState.experianceType == "Virtual") {
       final GoogleMapController controllerMap = await _controller.future;
       final LatLngBounds bounds = await controllerMap.getVisibleRegion();
       final LatLng mapViewCenter = LatLng(
@@ -117,30 +113,8 @@ class MapGoogleState extends State<MapGoogle> with TickerProviderStateMixin {
     });
   }
 
-  loadData() async {
-    if (widget.locations.isNotEmpty) {
-      for (var location in widget.locations) {
-        final marker = Marker(
-          markerId: MarkerId(location.id.toString()),
-          icon: BitmapDescriptor.defaultMarker,
-          position: location.coords,
-          infoWindow: InfoWindow(
-            title: location.name,
-          ),
-          onTap: () {
-            if (widget.experianceType == "Explore") {
-              widget.handleChangeCurrentLocation(location);
-              widget.togglePanel(0.5);
-            }
-          },
-        );
-        _markers.add(marker);
-      }
-    }
-  }
-
   void _moveToNextMarker(Location location) async {
-    if (widget.experianceType == "Virtual") {
+    if (appState.experianceType == "Virtual") {
       final nextMarker = Marker(
         markerId: MarkerId(location.id.toString()),
         icon: BitmapDescriptor.defaultMarker,
@@ -149,9 +123,8 @@ class MapGoogleState extends State<MapGoogle> with TickerProviderStateMixin {
           title: location.name,
         ),
       );
-      _markers.add(nextMarker);
+
       await moveToMarker(nextMarker);
-      widget.handleChangeCurrentLocation(location);
       _showVideoModal();
     }
   }
@@ -163,22 +136,38 @@ class MapGoogleState extends State<MapGoogle> with TickerProviderStateMixin {
       builder: (BuildContext context) {
         return VideoModalContent(
             togglePanel: widget.togglePanel,
-            currentLocation: widget.currentLocation);
+            currentLocation: appState.currentLocation);
       },
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    appState = context.watch<AppState>();
     return Scaffold(
       body: GoogleMap(
         padding: const EdgeInsets.only(left: 16.0, bottom: 100.0),
         mapType: MapType.normal,
         initialCameraPosition: CameraPosition(
-          target: widget.locations.last.coords,
+          target: locations.last.coords,
           zoom: 11.4,
         ),
-        markers: Set<Marker>.of(_markers),
+        markers: Set<Marker>.of(
+          locations.map((location) => Marker(
+                markerId: MarkerId(location.id.toString()),
+                position: location.coords,
+                infoWindow: InfoWindow(
+                  title: location.name,
+                  snippet: location.descr,
+                ),
+                onTap: () {
+                  if (appState.experianceType == "Explore") {
+                    appState.changeCurrentLocation(location);
+                    widget.togglePanel(0.5);
+                  }
+                },
+              )),
+        ),
         onMapCreated: (GoogleMapController controller) {
           controller.setMapStyle(mapTheme);
           _controller.complete(controller);

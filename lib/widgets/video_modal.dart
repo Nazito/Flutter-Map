@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flick_video_player/flick_video_player.dart';
+import 'package:go_router/go_router.dart';
 import 'package:my_app/additionals/location.dart';
 import 'package:my_app/utils/constants.dart';
 import 'package:video_player/video_player.dart';
@@ -80,7 +81,7 @@ class VideoModalContentState extends State<VideoModalContent> {
 
   void _closeModal() {
     _flickManager.dispose();
-    Navigator.pop(context);
+    GoRouter.of(context).pop();
     widget.togglePanel(1.0);
   }
 

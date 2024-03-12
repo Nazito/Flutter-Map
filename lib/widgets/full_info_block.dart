@@ -1,22 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:my_app/additionals/location.dart';
+import 'package:my_app/additionals/locations_list.dart';
+import 'package:my_app/main.dart';
+import 'package:provider/provider.dart';
 import '../utils/constants.dart';
 
 class FullInfoBlock extends StatefulWidget {
-  final void Function(dynamic state) handleChangeCurrentLocation;
   final void Function() closePanel;
-  final List<Location> locations;
-  final Location? currentLocation;
-  final String? experianceType;
 
   const FullInfoBlock({
     Key? key,
-    required this.handleChangeCurrentLocation,
     required this.closePanel,
-    required this.locations,
-    required this.currentLocation,
-    required this.experianceType,
   }) : super(key: key);
 
   @override
@@ -24,9 +19,12 @@ class FullInfoBlock extends StatefulWidget {
 }
 
 class FullInfoBlockState extends State<FullInfoBlock> {
+  late AppState appState;
+  final List<Location> locations = LocationList.locations;
   late AudioPlayer player;
   bool isPlaying = false;
   bool isClosed = false;
+  Location? _previousLocation;
 
   Duration duration = Duration.zero;
   Duration position = Duration.zero;
@@ -35,20 +33,23 @@ class FullInfoBlockState extends State<FullInfoBlock> {
   void initState() {
     super.initState();
     player = AudioPlayer();
-    setupAudioPlayerListeners();
-    if (widget.currentLocation != null) {
-      player.play(widget.currentLocation!.audio);
-    }
+    appState = Provider.of<AppState>(context, listen: false);
   }
 
   @override
-  void didUpdateWidget(covariant FullInfoBlock oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.currentLocation != widget.currentLocation) {
-      stopAndDisposePlayer();
-      player = AudioPlayer();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final currentLocation = appState.currentLocation;
+
+    if (_previousLocation != currentLocation && currentLocation != null) {
+      _previousLocation = currentLocation;
+
       setupAudioPlayerListeners();
+      player.play(appState.currentLocation!.audio);
     }
+
+    if (appState.currentLocation != null) {}
   }
 
   @override
@@ -85,12 +86,11 @@ class FullInfoBlockState extends State<FullInfoBlock> {
       });
     });
     player.onPlayerComplete.listen((event) {
-      if (widget.currentLocation != null &&
-          widget.experianceType == "Virtual") {
-        final currentIndex = widget.locations.indexOf(widget.currentLocation!);
-        if (currentIndex < widget.locations.length - 1) {
-          widget
-              .handleChangeCurrentLocation(widget.locations[currentIndex + 1]);
+      if (appState.currentLocation != null &&
+          appState.experianceType == "Virtual") {
+        final currentIndex = locations.indexOf(appState.currentLocation!);
+        if (currentIndex < locations.length - 1) {
+          appState.changeCurrentLocation(locations[currentIndex + 1]);
           widget.closePanel();
         }
       }
@@ -105,9 +105,9 @@ class FullInfoBlockState extends State<FullInfoBlock> {
     return Column(children: [
       Container(
         margin: const EdgeInsets.only(bottom: 20),
-        child: widget.currentLocation != null
+        child: appState.currentLocation != null
             ? Text(
-                widget.currentLocation!.name,
+                appState.currentLocation!.name,
                 style: Theme.of(context).textTheme.headlineMedium,
                 textAlign: TextAlign.center,
               )
@@ -119,7 +119,7 @@ class FullInfoBlockState extends State<FullInfoBlock> {
             alignment: WrapAlignment.spaceEvenly,
             direction: Axis.horizontal,
             spacing: 30.0,
-            children: (widget.currentLocation?.images ?? []).map((imagePath) {
+            children: (appState.currentLocation?.images ?? []).map((imagePath) {
               return Container(
                 width: 140.0,
                 height: 140.0,
@@ -145,7 +145,7 @@ class FullInfoBlockState extends State<FullInfoBlock> {
           child: Column(children: [
             Container(
               margin: const EdgeInsets.only(bottom: 15),
-              child: widget.currentLocation != null
+              child: appState.currentLocation != null
                   ? Text(
                       "Title",
                       style: Theme.of(context).textTheme.headlineMedium,
@@ -172,11 +172,11 @@ class FullInfoBlockState extends State<FullInfoBlock> {
                                 iconSize: 30.0,
                                 padding: const EdgeInsets.all(15),
                                 onPressed: () {
-                                  widget.currentLocation != null
+                                  appState.currentLocation != null
                                       ? isPlaying
                                           ? player.pause()
                                           : player.play(
-                                              widget.currentLocation!.audio)
+                                              appState.currentLocation!.audio)
                                       : null;
                                 },
                               )),
@@ -224,7 +224,7 @@ class FullInfoBlockState extends State<FullInfoBlock> {
                         ),
                       )),
                       child: Column(
-                        children: (widget.currentLocation?.interviewers ?? [])
+                        children: (appState.currentLocation?.interviewers ?? [])
                             .map((name) {
                           return SizedBox(
                             height: 64.0,
@@ -250,7 +250,7 @@ class FullInfoBlockState extends State<FullInfoBlock> {
                           textAlign: TextAlign.center,
                         )),
                     Column(
-                      children: (widget.currentLocation?.interviewees ?? [])
+                      children: (appState.currentLocation?.interviewees ?? [])
                           .map((name) {
                         String firstLetter = name.isNotEmpty ? name[0] : '';
                         String lastWord =
@@ -304,9 +304,9 @@ class FullInfoBlockState extends State<FullInfoBlock> {
                     borderRadius: const BorderRadius.all(Radius.circular(10.0)),
                   ),
                   margin: const EdgeInsets.only(left: 150),
-                  child: widget.currentLocation != null
+                  child: appState.currentLocation != null
                       ? Text(
-                          widget.currentLocation!.descr,
+                          appState.currentLocation!.descr,
                           style: Theme.of(context).textTheme.bodyMedium,
                           textAlign: TextAlign.center,
                         )
