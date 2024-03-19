@@ -1,6 +1,6 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:mapbox_gl/mapbox_gl.dart';
 
 import 'location.dart';
 
@@ -18,7 +18,7 @@ class LocationList {
           'assets/images/burning_man/burning_man_2.jpg',
         ],
         audio: AssetSource('audio/Burning_Man.mp3'),
-        coords: const LatLng(32.9172973, -96.7637959),
+        coords: const LatLng(40.7829, -119.2006),
         interviewers: ["Unknown"],
         interviewees: ["Brad Pitt"],
         video: 'assets/video/Burning_Man.mp4'),
@@ -34,7 +34,7 @@ class LocationList {
           'assets/images/brazil_carnaval/brazil_carnaval_2.jpg',
         ],
         audio: AssetSource('audio/Brazil_Carnaval.mp3'),
-        coords: const LatLng(32.8437457, -96.8326761),
+        coords: const LatLng(-22.9068, -43.1729),
         interviewers: ["Unknown", "Angelina Jolie"],
         interviewees: ["Leonardo DiCaprio", "Jennifer Aniston"],
         video: 'assets/video/Brazil_Carnaval.mp4'),
@@ -50,7 +50,7 @@ class LocationList {
         'assets/images/oktoberfest/oktoberfest_2.jpg',
       ],
       audio: AssetSource('audio/Oktoberfest.mp3'),
-      coords: const LatLng(32.8439148, -96.8299776),
+      coords: const LatLng(48.1351, 11.5820),
       interviewers: ["Tom Hanks", "Meryl Streep"],
       interviewees: ["George Clooney", "Julia Roberts"],
       video: 'assets/video/Oktoberfest.mp4',
@@ -68,7 +68,7 @@ class LocationList {
         'assets/images/day_of_dead/day_of_dead_2.jpg',
       ],
       audio: AssetSource('audio/DayOfDead.mp3'),
-      coords: const LatLng(32.7824583, -96.7949716),
+      coords: const LatLng(19.4326, -99.1332),
       interviewers: ["Denzel Washington", "Charlize Theron"],
       interviewees: ["Johnny Depp", "Sandra Bullock"],
       video: 'assets/video/DayOfDead.mp4',
@@ -84,7 +84,7 @@ class LocationList {
         'assets/images/rodeo/rodeo_2.jpg',
       ],
       audio: AssetSource('audio/Rodeo.mp3'),
-      coords: const LatLng(32.8334168, -96.8075467),
+      coords: const LatLng(29.7604, -95.3698),
       interviewers: ["Robert Downey Jr."],
       interviewees: ["Nicole Kidman"],
       video: 'assets/video/Rodeo.mp4',

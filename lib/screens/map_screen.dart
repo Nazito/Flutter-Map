@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:my_app/additionals/locations_list.dart';
 import 'package:my_app/main.dart';
 import 'package:my_app/widgets/carousel.dart';
+import 'package:my_app/widgets/locations_carousel.dart';
+import 'package:my_app/widgets/map_box_gl.dart';
 import 'package:my_app/widgets/panel_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
-import 'package:my_app/widgets/map_google.dart';
 import 'package:my_app/widgets/short_info_block.dart';
 import 'package:my_app/widgets/full_info_block.dart';
 import 'package:my_app/widgets/menu.dart';
@@ -49,9 +50,7 @@ class MapScreenState extends State<MapScreen> {
 
     return Stack(children: [
       Scaffold(
-          body: SafeArea(
-        top: true,
-        child: SlidingUpPanel(
+        body: SlidingUpPanel(
           minHeight: panelHeightClosed,
           maxHeight: panelHeightOpen,
           parallaxEnabled: false,
@@ -59,10 +58,11 @@ class MapScreenState extends State<MapScreen> {
           color: themeOverlayColor,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
           onPanelSlide: _snapPointPanel,
-          panelSnapping: false,
+          panelSnapping: true,
           snapPoint: 0.5,
           backdropEnabled: true,
           backdropTapClosesPanel: true,
+          boxShadow: null,
           panelBuilder: (controller) => PanelWidget(
               controller: controller, panelController: panelController),
           panel: Container(
@@ -71,27 +71,29 @@ class MapScreenState extends State<MapScreen> {
                 // Close Icons
                 Row(
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      iconSize: 30.0,
-                      onPressed: () {
-                        _closePanel();
-                        if (appState.currentLocation != null &&
-                            appState.experianceType == "Virtual") {
-                          final currentIndex =
-                              locations.indexOf(appState.currentLocation!);
-                          if (currentIndex < locations.length - 1) {
-                            appState.changeCurrentLocation(
-                                locations[currentIndex + 1]);
-                          }
-                        }
-                      },
-                    ),
+                    Container(
+                        padding: const EdgeInsets.only(left: 16.0, top: 16.0),
+                        child: IconButton(
+                          icon: const Icon(Icons.close),
+                          iconSize: 30.0,
+                          onPressed: () {
+                            _closePanel();
+                            if (appState.currentLocation != null &&
+                                appState.experianceType == "Virtual") {
+                              final currentIndex =
+                                  locations.indexOf(appState.currentLocation!);
+                              if (currentIndex < locations.length - 1) {
+                                appState.changeCurrentLocation(
+                                    locations[currentIndex + 1]);
+                              }
+                            }
+                          },
+                        )),
                   ],
                 ),
                 // Full height block
                 Visibility(
-                    visible: previousPosition > 0.5,
+                    visible: previousPosition > 0.5 + 0.01,
                     child: FullInfoBlock(
                       closePanel: _closePanel,
                     )),
@@ -100,22 +102,26 @@ class MapScreenState extends State<MapScreen> {
                     visible: previousPosition <= 0.5,
                     child: const ShortInfoBlock()),
               ])),
-          body: Center(
-            child: MapGoogle(
-              togglePanel: _togglePanel,
-            ),
-          ),
+          body: MapBoxGl(
+              togglePanel: _togglePanel, panelPosition: previousPosition),
         ),
-      )),
+      ),
       Positioned(
         left: 25.0,
         bottom: 80.0,
         child: FloatingActionButton(
+          backgroundColor: themeSecondaryColor,
           onPressed: () {
             _showMenuModal(context);
           },
           child: const Icon(Icons.menu),
         ),
+      ),
+      Positioned(
+        right: 25.0,
+        left: 100.0,
+        bottom: 50.0,
+        child: LocationsCarousel(togglePanel: _togglePanel),
       ),
     ]);
   }
